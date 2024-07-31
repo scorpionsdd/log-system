@@ -2,10 +2,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.OracleClient;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace Log.Layer.Model.Extension
@@ -146,6 +149,23 @@ namespace Log.Layer.Model.Extension
                 }
             }
             return GenericEnum.ToString();
+        }
+        public static string SerializeOracleParameters(this OracleParameter[] parameters)
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(OracleParameter[]));
+            using (StringWriter writer = new StringWriter())
+            {
+                serializer.Serialize(writer, parameters);
+                return writer.ToString();
+            }
+        }
+        public static OracleParameter[] DeserializeOracleParameters(this string xml)
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(OracleParameter[]));
+            using (StringReader reader = new StringReader(xml))
+            {
+                return (OracleParameter[])serializer.Deserialize(reader);
+            }
         }
     }
 }

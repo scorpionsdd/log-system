@@ -166,7 +166,7 @@ namespace Log.Layer.Business
                 ItemUpdate itemUpdate = new ItemUpdate();
                 ItemDelete itemDelete = new ItemDelete();
 
-                if (enuAction != enuActionTrack.Create)
+                if (enuAction != enuActionTrack.Create && enuAction != enuActionTrack.Delete)
                 {
                     if (enuAction == enuActionTrack.Retrieve)
                     {
@@ -202,7 +202,7 @@ namespace Log.Layer.Business
                         itemCreate.data = new List<Item>();
                         parameter.ToList().ForEach(x => {
                             var item = field.FirstOrDefault(p => p.value == x.ParameterName);
-                            itemCreate.data.Add(new Item { value = item.text, text = string.Format("{0}", x.Value) });
+                            itemCreate.data.Add(new Item { label = item.label, value = item.text, text = string.Format("{0}", x.Value) });
                         });
                         if (itemCreate.data.Any()) result.result = JsonConvert.SerializeObject(itemCreate);
                         break;
@@ -226,7 +226,7 @@ namespace Log.Layer.Business
                                 var x = parameter.FirstOrDefault(y => y.ParameterName == item.value);
                                 itemUpdate.data.Add(new ItemComplex
                                 {
-                                    before = new Item { value = item.text, text = string.Format("{0}", dr[item.text]) },
+                                    before = new Item { label=item.label, value = item.text, text = string.Format("{0}", dr[item.text]) },
                                     after = new Item { value = x.ParameterName, text = string.Format("{0}", x.Value) }
                                 });
                             }
@@ -234,6 +234,7 @@ namespace Log.Layer.Business
                         if (itemUpdate.data.Any()) result.result = JsonConvert.SerializeObject(itemUpdate);
                         break;
                     case enuActionTrack.Delete:
+                        itemDelete.data = new List<Item>();
                         parameter.ToList().ForEach(x => {
                             var item = field.FirstOrDefault(p => p.value == x.ParameterName);
                             itemDelete.data.Add(new Item { value = item.text, text = string.Format("{0}", x.Value) });
