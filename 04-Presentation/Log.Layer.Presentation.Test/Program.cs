@@ -72,7 +72,7 @@ namespace Log.Layer.Presentation.Test
                     , null, enuActionTrack.Retrieve, ds
                     );
             ControlLog.GetInstance().Create(
-                new LogSystem(Convert.ToInt32(uid), "Pantalla Vista de Reglas / Editor de Regla", enuAction.Retrieve.GetDescription(), "sof_regla, sof_empleados", sSql, ip, metadata.result));
+                new LogSystem(Convert.ToInt32(uid), "Pantalla Vista de Reglas / Editor de Regla", enuAction.Retrieve.GetDescription(), "sof_regla, sof_empleados", sSql, ip,Guid.NewGuid().ToString(), "1",metadata.result));
             #endregion
             return ds;
         }
@@ -202,7 +202,7 @@ namespace Log.Layer.Presentation.Test
                 , null, enuActionTrack.Create
                 );
             ControlLog.GetInstance().Create(
-                new LogSystem(Convert.ToInt32(uid), "Pantalla Vista de Reglas / Editor de Reglas", enuAction.Create.GetDescription(), "sp_regla_create", string.Join(",", oParam.ToList()), ip, metadata.result));
+                new LogSystem(Convert.ToInt32(uid), "Pantalla Vista de Reglas / Editor de Reglas", enuAction.Create.GetDescription(), "sp_regla_create", string.Join(",", oParam.ToList()), ip, Guid.NewGuid().ToString(), "1", metadata.result));
             #endregion
 
             return 1;
@@ -340,7 +340,7 @@ namespace Log.Layer.Presentation.Test
             OracleHelper.ExecuteNonQuery(ConfigurationManager.AppSettings["ConnectionString"],CommandType.StoredProcedure, "sp_regla_update", oParam);
             #region Log
             ControlLog.GetInstance().Create(
-                new LogSystem(Convert.ToInt32(uid), "Pantalla Vista de Reglas / Editor de Reglas", enuAction.Update.GetDescription(), "sp_regla_update", string.Join(",", oParam.Select(x => string.Format("{0}={1}", x.ParameterName, x.Value)).ToList()), ip, metadata.result));
+                new LogSystem(Convert.ToInt32(uid), "Pantalla Vista de Reglas / Editor de Reglas", enuAction.Update.GetDescription(), "sp_regla_update", string.Join(",", oParam.Select(x => string.Format("{0}={1}", x.ParameterName, x.Value)).ToList()), ip, Guid.NewGuid().ToString(), "1", metadata.result));
             #endregion
 
         }
@@ -365,7 +365,7 @@ namespace Log.Layer.Presentation.Test
         , null, enuActionTrack.Delete, null
         );
             ControlLog.GetInstance().Create(
-            new LogSystem(Convert.ToInt32(uid), "Pantalla Vista de Reglas / Editor de Reglas", enuAction.Delete.GetDescription(), "sp_regla_remove", string.Join(",", oParam.ToList()), ip, metadata.result)); 
+            new LogSystem(Convert.ToInt32(uid), "Pantalla Vista de Reglas / Editor de Reglas", enuAction.Delete.GetDescription(), "sp_regla_remove", string.Join(",", oParam.ToList()), ip, Guid.NewGuid().ToString(), "1", metadata.result)); 
             #endregion
         }
     }
