@@ -26,10 +26,10 @@ namespace Log.Layer.Presentation.Test
         /// <param name="args"></param>
         static void Main(string[] args)
         {
-            GetRegla(838, "", "");
+            //GetRegla(838, "", "");
             Create("1", "11");
             Update("1", "11");
-            Remove(1, "11", "1", "11");
+            //Remove(1, "11", "1", "11");
         }
 
         public static DataSet GetRegla(int ruleId, string uid, string ip)
@@ -182,16 +182,16 @@ namespace Log.Layer.Presentation.Test
                 { new Item { label="Confirna Concluir, el Volante? ", text ="CONFIRMA_CONCLUIR", value = "pCONFIRMA_CONCLUIR" } },
                 { new Item { label="Se concluye un volante al acusar de recibo un turno con copia", text ="CONCLUIR_ACUSE_CCPARA", value = "pCONCLUIR_ACUSE_CCPARA" } },
                 { new Item { label="La Respuesta es en Cascada? ", text ="RESPONDER_CASCADA", value = "pRESPONDER_CASCADA" } },
-                { new Item { label="Usuario", text ="ID_EMPLEADO", value = "pID_EMPLEADO" } },
-                { new Item { label="Remitente Area", text ="ID_REMITENTE_AREA", value = "pID_REMITENTE_AREA" } },
-                { new Item { label="Remitente", text ="ID_REMITENTE_TITULAR", value = "pID_REMITENTE_TITULAR" } },
-                { new Item { label="Destinatario Area", text ="ID_DESTINATARIO_AREA", value = "pID_DESTINATARIO_AREA" } },
-                { new Item { label="Destinatario", text ="ID_DESTINATARIO_TITULAR", value = "pID_DESTINATARIO_TITULAR" } },
-                { new Item { label="Firma", text ="ID_FIRMA", value = "pID_FIRMA" } },
-                { new Item { label="Folio", text ="ID_FOLIO", value = "pID_FOLIO" } },
-                { new Item { label="Tipo Documento Empleado", text ="ID_TIPO_DOCUMENTO_EMPLEADO", value = "pID_TIPO_DOCUMENTO_EMPLEADO" } },
-                { new Item { label="Tipo Documento Empleado Area", text ="ID_TIPO_DOCUMENTO_AREA", value = "pID_TIPO_DOCUMENTO_AREA" } },
-                { new Item { label="Remitente Externo", text ="ID_REMITENTE_EXTERNO", value = "pID_REMITENTE_EXTERNO" } },
+                { new Item { label="Usuario", text ="ID_EMPLEADO", value = "pID_EMPLEADO",sentence="SELECT nombre \"text\" FROM sof_empleados WHERE ID_EMPLEADO ={0}" } },
+                { new Item { label="Remitente Area", text ="ID_REMITENTE_AREA", value = "pID_REMITENTE_AREA" , sentence = "select area \"text\" From sof_Areas WHERE id_area={0}"} },
+                { new Item { label="Remitente", text ="ID_REMITENTE_TITULAR", value = "pID_REMITENTE_TITULAR" ,sentence="SELECT nombre \"text\" FROM sof_empleados WHERE ID_EMPLEADO ={0}"} },
+                { new Item { label="Destinatario Area", text ="ID_DESTINATARIO_AREA", value = "pID_DESTINATARIO_AREA", sentence = "select area \"text\" From sof_Areas WHERE id_area={0}" } },
+                { new Item { label="Destinatario", text ="ID_DESTINATARIO_TITULAR", value = "pID_DESTINATARIO_TITULAR",sentence="SELECT nombre \"text\" FROM sof_empleados WHERE ID_EMPLEADO ={0}" } },
+                { new Item { label="Firma", text ="ID_FIRMA", value = "pID_FIRMA",sentence="SELECT nombre \"text\" FROM sof_empleados WHERE ID_EMPLEADO ={0}" } },
+                { new Item { label="Folio", text ="ID_FOLIO", value = "pID_FOLIO" , sentence = "select area \"text\" From sof_Areas WHERE id_area={0}"} },
+                { new Item { label="Tipo Documento Empleado", text ="ID_TIPO_DOCUMENTO_EMPLEADO", value = "pID_TIPO_DOCUMENTO_EMPLEADO" ,sentence="SELECT nombre \"text\" FROM sof_empleados WHERE ID_EMPLEADO ={0}"} },
+                { new Item { label="Tipo Documento Empleado Area", text ="ID_TIPO_DOCUMENTO_AREA", value = "pID_TIPO_DOCUMENTO_AREA", sentence = "select area \"text\" From sof_Areas WHERE id_area={0}" } },
+                { new Item { label="Remitente Externo", text ="ID_REMITENTE_EXTERNO", value = "pID_REMITENTE_EXTERNO" ,sentence="SELECT nombre \"text\" FROM sof_empleados WHERE ID_EMPLEADO ={0}"} },
                 { new Item { label="Remitente Externo Area", text ="DOCUMENTO_TIPO", value = "pDOCUMENTO_TIPO" } },
                 { new Item { label="Eliminado", text ="ELIMINADO", value = "pELIMINADO" } },
                 { new Item { label="Fecha de Vigencia", text ="FECHA_INICIO", value = "pFECHA_INICIO" } },
@@ -316,16 +316,16 @@ namespace Log.Layer.Presentation.Test
             { new Item { label="Confirna Concluir, el Volante? ", text ="CONFIRMA_CONCLUIR", value = "pCONFIRMA_CONCLUIR" } },
             { new Item { label="Se concluye un volante al acusar de recibo un turno con copia", text ="CONCLUIR_ACUSE_CCPARA", value = "pCONCLUIR_ACUSE_CCPARA" } },
             { new Item { label="La Respuesta es en Cascada? ", text ="RESPONDER_CASCADA", value = "pRESPONDER_CASCADA" } },
-            { new Item { label="Usuario", text ="ID_EMPLEADO", value = "pID_EMPLEADO" } },
-            { new Item { label="Remitente Area", text ="ID_REMITENTE_AREA", value = "pID_REMITENTE_AREA" } },
-            { new Item { label="Remitente", text ="ID_REMITENTE_TITULAR", value = "pID_REMITENTE_TITULAR" } },
-            { new Item { label="Destinatario Area", text ="ID_DESTINATARIO_AREA", value = "pID_DESTINATARIO_AREA" } },
-            { new Item { label="Destinatario", text ="ID_DESTINATARIO_TITULAR", value = "pID_DESTINATARIO_TITULAR" } },
-            { new Item { label="Firma", text ="ID_FIRMA", value = "pID_FIRMA" } },
-            { new Item { label="Folio", text ="ID_FOLIO", value = "pID_FOLIO" } },
-            { new Item { label="Tipo Documento Empleado", text ="ID_TIPO_DOCUMENTO_EMPLEADO", value = "pID_TIPO_DOCUMENTO_EMPLEADO" } },
-            { new Item { label="Tipo Documento Empleado Area", text ="ID_TIPO_DOCUMENTO_AREA", value = "pID_TIPO_DOCUMENTO_AREA" } },
-            { new Item { label="Remitente Externo", text ="ID_REMITENTE_EXTERNO", value = "pID_REMITENTE_EXTERNO" } },
+            { new Item { label="Usuario", text ="ID_EMPLEADO", value = "pID_EMPLEADO",sentence="SELECT nombre \"text\" FROM sof_empleados WHERE ID_EMPLEADO ={0}" } },
+            { new Item { label="Remitente Area", text ="ID_REMITENTE_AREA", value = "pID_REMITENTE_AREA" , sentence = "select area \"text\" From sof_Areas WHERE id_area={0}"} },
+            { new Item { label="Remitente", text ="ID_REMITENTE_TITULAR", value = "pID_REMITENTE_TITULAR" ,sentence="SELECT nombre \"text\" FROM sof_empleados WHERE ID_EMPLEADO ={0}"} },
+            { new Item { label="Destinatario Area", text ="ID_DESTINATARIO_AREA", value = "pID_DESTINATARIO_AREA", sentence = "select area \"text\" From sof_Areas WHERE id_area={0}" } },
+            { new Item { label="Destinatario", text ="ID_DESTINATARIO_TITULAR", value = "pID_DESTINATARIO_TITULAR",sentence="SELECT nombre \"text\" FROM sof_empleados WHERE ID_EMPLEADO ={0}" } },
+            { new Item { label="Firma", text ="ID_FIRMA", value = "pID_FIRMA",sentence="SELECT nombre \"text\" FROM sof_empleados WHERE ID_EMPLEADO ={0}" } },
+            { new Item { label="Folio", text ="ID_FOLIO", value = "pID_FOLIO" , sentence = "select area \"text\" From sof_Areas WHERE id_area={0}"} },
+            { new Item { label="Tipo Documento Empleado", text ="ID_TIPO_DOCUMENTO_EMPLEADO", value = "pID_TIPO_DOCUMENTO_EMPLEADO" ,sentence="SELECT nombre \"text\" FROM sof_empleados WHERE ID_EMPLEADO ={0}"} },
+            { new Item { label="Tipo Documento Empleado Area", text ="ID_TIPO_DOCUMENTO_AREA", value = "pID_TIPO_DOCUMENTO_AREA", sentence = "select area \"text\" From sof_Areas WHERE id_area={0}" } },
+            { new Item { label="Remitente Externo", text ="ID_REMITENTE_EXTERNO", value = "pID_REMITENTE_EXTERNO" ,sentence="SELECT nombre \"text\" FROM sof_empleados WHERE ID_EMPLEADO ={0}"} },
             { new Item { label="Remitente Externo Area", text ="DOCUMENTO_TIPO", value = "pDOCUMENTO_TIPO" } },
             { new Item { label="Eliminado", text ="ELIMINADO", value = "pELIMINADO" } },
             { new Item { label="Fecha de Vigencia", text ="FECHA_INICIO", value = "pFECHA_INICIO" } }

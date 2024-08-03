@@ -11,5 +11,6 @@ namespace Log.Layer.Model.Model
         public string label { get; set; }
         public string value{ get; set; }
         public string text { get; set; }
+        public string sentence { get; set; }
     }
 }

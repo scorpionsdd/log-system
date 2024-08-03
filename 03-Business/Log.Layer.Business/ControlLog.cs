@@ -61,8 +61,8 @@ namespace Log.Layer.Business
             {
                 string sql = string.Empty;
                 int count;
-                sql = "INSERT INTO CGESTION.LOGSYSTEM\r\n(USERID, DATETIMEEVENT, MODULE, \"ACTION\", ISDB, \"TABLE\", SENTENCE,IP,METADATA)\r\n" +
-                    "VALUES('{0}', TO_DATE('{1}', 'YYYY-MM-DD HH24:MI:SS'), '{2}', '{3}', '{4}', '{5}', '{6}','{7}','{8}')";
+                sql = "DECLARE  v_text CLOB := '{8}'; BEGIN INSERT INTO CGESTION.LOGSYSTEM\r\n(USERID, DATETIMEEVENT, MODULE, \"ACTION\", ISDB, \"TABLE\", SENTENCE,IP,METADATA)\r\n" +
+                    "VALUES('{0}', TO_DATE('{1}', 'YYYY-MM-DD HH24:MI:SS'), '{2}', '{3}', '{4}', '{5}', '{6}','{7}',v_text); END;";
                 record.DateTimeEvent = DateTime.Now;
                 sql = string.Format(sql, record.UserId, record.DateTimeEvent.ToString("yyyy-MM-dd hh:mm:ss"), record.Module, record.Action, record.IsDB ? "1" : "0", record.Table, record.Sentence.Replace("'", "\""), record.IP, record.Metadata);
                 count = ExecuteNonQuery(ConfigurationManager.AppSettings["ConnectionString"], CommandType.Text, sql);
@@ -165,7 +165,23 @@ namespace Log.Layer.Business
                 ItemRetrieve itemRetrieve = new ItemRetrieve();
                 ItemUpdate itemUpdate = new ItemUpdate();
                 ItemDelete itemDelete = new ItemDelete();
-
+                Func<string, string,string> fnGetText = (string sentence,string filter) => {
+                    string text = string.Empty;
+                    try
+                    {
+                        var rd = ExecuteReader(ConfigurationManager.AppSettings["ConnectionString"], CommandType.Text, string.Format(sentence, filter), null);
+                        dt = rd.ToDataTable();
+                        if (dt != null && dt.Rows.Count > 0)
+                        {
+                            text = dt.Rows[0][0].ToString();
+                        }
+                        if (string.IsNullOrEmpty(text)) text = filter;
+                    }
+                    catch (Exception)
+                    {
+                    }
+                    return text;
+                };
                 if (enuAction != enuActionTrack.Create && enuAction != enuActionTrack.Delete)
                 {
                     if (enuAction == enuActionTrack.Retrieve)
@@ -224,10 +240,17 @@ namespace Log.Layer.Business
                             foreach (var item in field)
                             {
                                 var x = parameter.FirstOrDefault(y => y.ParameterName == item.value);
+                                var valueOld = dr[item.text];
+                                var valueNew = x.Value;
+                                if (!string.IsNullOrEmpty(item.sentence))
+                                {
+                                    valueOld = fnGetText(item.sentence, valueOld.ToString());
+                                    valueNew = fnGetText(item.sentence, valueNew.ToString());
+                                }
                                 itemUpdate.data.Add(new ItemComplex
                                 {
-                                    before = new Item { label=item.label, value = item.text, text = string.Format("{0}", dr[item.text]) },
-                                    after = new Item { value = x.ParameterName, text = string.Format("{0}", x.Value) }
+                                    before = new Item { label=item.label, value = item.text, text = string.Format("{0}", valueOld) },
+                                    after = new Item { value = x.ParameterName, text = string.Format("{0}", valueNew) }
                                 });
                             }
                         }
@@ -243,6 +266,65 @@ namespace Log.Layer.Business
                         break;
                 }
 
+            }
+            catch (Exception ex)
+            {
+                result.message = GetException(ex);
+            }
+            result.isOk = string.IsNullOrEmpty(result.message);
+            return result;
+        }
+        /// <summary>
+        /// Genera la salida html para representar el metadato del registro afectado
+        /// </summary>
+        /// <param name="item">Instancia de LogSystem, donde se requiere solo: Action, DateTimeEvent y Metadata</param>
+        /// <returns>Contenido html para representar en interface</returns>
+        public TransactionDTO<string> BuildMetadata(LogSystem item) {
+            TransactionDTO<string> result=new TransactionDTO<string>();
+            try
+            {
+                ItemCreate itemCreate = new ItemCreate();
+                ItemRetrieve itemRetrieve = new ItemRetrieve();
+                ItemUpdate itemUpdate = new ItemUpdate();
+                ItemDelete itemDelete = new ItemDelete();
+                string htmlRow = "<tr><td>{0}</td><td>{1}</td></tr>";
+                string htmlRowUpdate = "<tr><td>{0}</td><td>{1}</td><td>{2}</td></tr>";
+                string htmlBody = string.Empty;
+                string htmlTable = "<table>{0}</table>";
+                
+                switch (item.Action)
+                {
+                    case "Crear Registro":
+                        itemCreate = JsonConvert.DeserializeObject<ItemCreate>(item.Metadata);
+                        itemCreate.data.ForEach(x => {
+                            htmlBody += string.Format(htmlRow, x.label, x.text);
+                        });
+                        break;
+                    case "Consultar Registro":
+                        itemRetrieve = JsonConvert.DeserializeObject<ItemRetrieve>(item.Metadata);
+                        itemRetrieve.data.ForEach(x => {
+                            htmlBody += string.Format(htmlRow, x.value, x.text);
+                        });
+                        break;
+                    case "Actualizar Registro":
+                        itemUpdate = JsonConvert.DeserializeObject<ItemUpdate>(item.Metadata);
+                        itemUpdate.data.ForEach(x => {
+                            htmlBody += string.Format(
+                                htmlRowUpdate, 
+                                x.before.label, 
+                                string.Format("<span class='item-value-old'>{0}</span>", x.before.text),
+                                string.Format("<span class='item-value-new'>{0}</span>", x.after.text));
+                        });
+                        break;
+                    case "Eliminar Registro":
+                        itemDelete = JsonConvert.DeserializeObject<ItemDelete>(item.Metadata);
+                        itemDelete.data.ForEach(x => {
+                            htmlBody += string.Format(htmlRow, x.value, x.text);
+                        });
+                        break;
+                }
+
+                result.result= string.Format(htmlTable, htmlBody);
             }
             catch (Exception ex)
             {
