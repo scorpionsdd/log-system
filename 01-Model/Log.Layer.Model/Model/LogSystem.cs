@@ -69,7 +69,7 @@ namespace Log.Layer.Model.Model
             IsDB = !string.IsNullOrEmpty(Table);
             IP = _IP;
             SessionId = _SessionId;
-            Expedient = _Expedient;
+            Expedient=_Expedient;
             Metadata = _Metadata;
         }
     }

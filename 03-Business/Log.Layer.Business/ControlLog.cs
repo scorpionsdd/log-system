@@ -61,10 +61,10 @@ namespace Log.Layer.Business
             {
                 string sql = string.Empty;
                 int count;
-                sql = "DECLARE  v_text CLOB := '{8}'; BEGIN INSERT INTO CGESTION.LOGSYSTEM\r\n(USERID, DATETIMEEVENT, MODULE, \"ACTION\", ISDB, \"TABLE\", SENTENCE,IP,METADATA)\r\n" +
-                    "VALUES('{0}', TO_DATE('{1}', 'YYYY-MM-DD HH24:MI:SS'), '{2}', '{3}', '{4}', '{5}', '{6}','{7}',v_text); END;";
+                sql = "DECLARE  v_text CLOB := '{8}'; BEGIN INSERT INTO CGESTION.BITACORA\r\n(USUARIOID, FECHAEVENTO, MODULO, ACCION, ESBD, TABLA, SENTENCIA, IP, METADATO, SESIONID, EXPEDIENTE)\r\n" +
+                    "VALUES('{0}', TO_DATE('{1}', 'YYYY-MM-DD HH24:MI:SS'), '{2}', '{3}', '{4}', '{5}', '{6}','{7}',v_text,'{9}','{10}'); END;";
                 record.DateTimeEvent = DateTime.Now;
-                sql = string.Format(sql, record.UserId, record.DateTimeEvent.ToString("yyyy-MM-dd hh:mm:ss"), record.Module, record.Action, record.IsDB ? "1" : "0", record.Table, record.Sentence.Replace("'", "\""), record.IP, record.Metadata);
+                sql = string.Format(sql, record.UserId, record.DateTimeEvent.ToString("yyyy-MM-dd hh:mm:ss"), record.Module, record.Action, record.IsDB ? "1" : "0", record.Table, record.Sentence.Replace("'", "\""), record.IP, record.Metadata,record.SessionId,record.Expedient);
                 count = ExecuteNonQuery(ConfigurationManager.AppSettings["ConnectionString"], CommandType.Text, sql);
                 result.result = count > 0;
             }
@@ -100,19 +100,19 @@ namespace Log.Layer.Business
                 List<string> criteria = new List<string>();
                 List<string> criteriaDate = new List<string>();
                 OracleDataReader reader;
-                sql = "SELECT CAST(LOGID AS INTEGER) AS LOGID, CAST(0 AS INTEGER) as USERID ,T2.NOMBRE AS \"USER\", DATETIMEEVENT, MODULE, \"ACTION\", CASE WHEN CAST(ISDB AS INTEGER)= 1 THEN 1 ELSE 0 END AS  ISDB, \"TABLE\", SENTENCE,IP,METADATA " +
-                    "FROM CGESTION.LOGSYSTEM T1 " +
-                    "LEFT JOIN CGESTION.SOF_EMPLEADOS T2 ON CAST(TRUNC(T1.USERID) AS INTEGER)=CAST(TRUNC(T2.ID_EMPLEADO) AS INTEGER) " +
-                    "{0} ORDER BY LOGID DESC";
+                sql = "SELECT CAST(BITACORAID AS INTEGER) AS LOGID, CAST(0 AS INTEGER) as USERID ,T2.NOMBRE AS \"USER\", FECHAEVENTO AS DATETIMEEVENT,MODULO AS MODULE,ACCION AS \"ACTION\", CASE WHEN CAST(ESBD AS INTEGER)= 1 THEN 1 ELSE 0 END AS  ISDB, TABLA AS \"TABLE\",SENTENCIA AS SENTENCE,IP,METADATO AS METADATA,SESIONID, EXPEDIENTE " +
+                    "FROM CGESTION.BITACORA T1 " +
+                    "LEFT JOIN CGESTION.SOF_EMPLEADOS T2 ON CAST(TRUNC(T1.USUARIOID) AS INTEGER)=CAST(TRUNC(T2.ID_EMPLEADO) AS INTEGER) " +
+                    "{0} ORDER BY BITACORAID DESC";
 
-                if (filter.UserId > 0) criteria.Add(string.Format(" CAST(TRUNC(T1.USERID) AS INTEGER)={0} ", filter.UserId));
-                if (!string.IsNullOrEmpty(filter.Module)) criteria.Add(string.Format(" UPPER(MODULE) LIKE '%{0}%' ", filter.Module.ToUpper()));
-                if (!string.IsNullOrEmpty(filter.Action)) criteria.Add(string.Format(" UPPER(\"ACTION\")='{0}' ", filter.Action.ToUpper()));
-                if (!string.IsNullOrEmpty(filter.Table)) criteria.Add(string.Format(" UPPER(\"TABLE\") LIKE '%{0}%' ", filter.Table.ToUpper()));
+                if (filter.UserId > 0) criteria.Add(string.Format(" CAST(TRUNC(T1.USUARIOID) AS INTEGER)={0} ", filter.UserId));
+                if (!string.IsNullOrEmpty(filter.Module)) criteria.Add(string.Format(" UPPER(MODULO) LIKE '%{0}%' ", filter.Module.ToUpper()));
+                if (!string.IsNullOrEmpty(filter.Action)) criteria.Add(string.Format(" UPPER(ACCION)='{0}' ", filter.Action.ToUpper()));
+                if (!string.IsNullOrEmpty(filter.Table)) criteria.Add(string.Format(" UPPER(TABLA) LIKE '%{0}%' ", filter.Table.ToUpper()));
                 if (filter.DateTimeEventFrom.HasValue || filter.DateTimeEventTo.HasValue)
                 {
-                    if (filter.DateTimeEventFrom.HasValue) criteriaDate.Add(string.Format(" DATETIMEEVENT >=TO_DATE('{0}', 'YYYY-MM-DD HH24:MI:SS') ", filter.DateTimeEventFrom.Value.ToString("yyyy-MM-dd hh:mm:ss")));
-                    if (filter.DateTimeEventTo.HasValue) criteriaDate.Add(string.Format(" DATETIMEEVENT <=TO_DATE('{0}', 'YYYY-MM-DD HH24:MI:SS') ", filter.DateTimeEventTo.Value.ToString("yyyy-MM-dd hh:mm:ss")));
+                    if (filter.DateTimeEventFrom.HasValue) criteriaDate.Add(string.Format(" FECHAEVENTO >=TO_DATE('{0}', 'YYYY-MM-DD HH24:MI:SS') ", filter.DateTimeEventFrom.Value.ToString("yyyy-MM-dd hh:mm:ss")));
+                    if (filter.DateTimeEventTo.HasValue) criteriaDate.Add(string.Format(" FECHAEVENTO <=TO_DATE('{0}', 'YYYY-MM-DD HH24:MI:SS') ", filter.DateTimeEventTo.Value.ToString("yyyy-MM-dd hh:mm:ss")));
                     criteria.Add(string.Format(" ({0}) ", string.Join("OR", criteriaDate)));
                 }
 
@@ -218,7 +218,12 @@ namespace Log.Layer.Business
                         itemCreate.data = new List<Item>();
                         parameter.ToList().ForEach(x => {
                             var item = field.FirstOrDefault(p => p.value == x.ParameterName);
-                            itemCreate.data.Add(new Item { label = item.label, value = item.text, text = string.Format("{0}", x.Value) });
+                            var valueNew = x.Value;
+                            if (!string.IsNullOrEmpty(item.sentence))
+                            {                             
+                                valueNew = fnGetText(item.sentence, valueNew.ToString());
+                            }
+                            itemCreate.data.Add(new Item { label = item.label, value = item.text, text = string.Format("{0}", valueNew) });
                         });
                         if (itemCreate.data.Any()) result.result = JsonConvert.SerializeObject(itemCreate);
                         break;
@@ -242,16 +247,19 @@ namespace Log.Layer.Business
                                 var x = parameter.FirstOrDefault(y => y.ParameterName == item.value);
                                 var valueOld = dr[item.text];
                                 var valueNew = x.Value;
-                                if (!string.IsNullOrEmpty(item.sentence))
+                                if (valueOld!= valueNew)
                                 {
-                                    valueOld = fnGetText(item.sentence, valueOld.ToString());
-                                    valueNew = fnGetText(item.sentence, valueNew.ToString());
+                                    if (!string.IsNullOrEmpty(item.sentence))
+                                    {
+                                        valueOld = fnGetText(item.sentence, valueOld.ToString());
+                                        valueNew = fnGetText(item.sentence, valueNew.ToString());
+                                    }
+                                    itemUpdate.data.Add(new ItemComplex
+                                    {
+                                        before = new Item { label = item.label, value = item.text, text = string.Format("{0}", valueOld) },
+                                        after = new Item { value = x.ParameterName, text = string.Format("{0}", valueNew) }
+                                    }); 
                                 }
-                                itemUpdate.data.Add(new ItemComplex
-                                {
-                                    before = new Item { label=item.label, value = item.text, text = string.Format("{0}", valueOld) },
-                                    after = new Item { value = x.ParameterName, text = string.Format("{0}", valueNew) }
-                                });
                             }
                         }
                         if (itemUpdate.data.Any()) result.result = JsonConvert.SerializeObject(itemUpdate);
@@ -297,7 +305,7 @@ namespace Log.Layer.Business
                     case "Crear Registro":
                         itemCreate = JsonConvert.DeserializeObject<ItemCreate>(item.Metadata);
                         itemCreate.data.ForEach(x => {
-                            htmlBody += string.Format(htmlRow, x.label, x.text);
+                            htmlBody += string.Format(htmlRow, x.label, string.Format("<span class='item-value-new'>{0}</span>", x.text));
                         });
                         break;
                     case "Consultar Registro":
