@@ -51,6 +51,7 @@
     <Compile Include="Model\ItemUpdate.cs" />
     <Compile Include="Model\LogSystem.cs" />
     <Compile Include="Model\LogSystemFilter.cs" />
+    <Compile Include="Model\LogSystemType.cs" />
     <Compile Include="Model\TransactionDTO.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

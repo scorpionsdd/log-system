@@ -128,6 +128,36 @@ namespace Log.Layer.Model.Extension
 
             return dataTable;
         }
+        public static DataTable ChangeColumnOrder(this DataTable originalTable, string[] newColumnOrder)
+        {
+            DataTable newTable = new DataTable();
+
+            // Agregar las columnas en el nuevo orden
+            foreach (string columnName in newColumnOrder)
+            {
+                if (originalTable.Columns.Contains(columnName))
+                {
+                    newTable.Columns.Add(columnName, originalTable.Columns[columnName].DataType);
+                }
+                else
+                {
+                    throw new ArgumentException($"Columna '{columnName}' no existe en la tabla original.");
+                }
+            }
+
+            // Copiar las filas de la tabla original
+            foreach (DataRow row in originalTable.Rows)
+            {
+                DataRow newRow = newTable.NewRow();
+                foreach (string columnName in newColumnOrder)
+                {
+                    newRow[columnName] = row[columnName];
+                }
+                newTable.Rows.Add(newRow);
+            }
+
+            return newTable;
+        }
         public static List<Log.Layer.Model.Model.Item> GetEnumDescription(this Enum enumerator)
         {
             List<Log.Layer.Model.Model.Item> result = new List<Log.Layer.Model.Model.Item>();

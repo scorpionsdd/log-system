@@ -100,14 +100,16 @@ namespace Log.Layer.Business
                 List<string> criteria = new List<string>();
                 List<string> criteriaDate = new List<string>();
                 OracleDataReader reader;
-                sql = "SELECT CAST(BITACORAID AS INTEGER) AS LOGID, CAST(0 AS INTEGER) as USERID ,T2.NOMBRE AS \"USER\", FECHAEVENTO AS DATETIMEEVENT,MODULO AS MODULE,ACCION AS \"ACTION\", CASE WHEN CAST(ESBD AS INTEGER)= 1 THEN 1 ELSE 0 END AS  ISDB, TABLA AS \"TABLE\",SENTENCIA AS SENTENCE,IP,METADATO AS METADATA,SESIONID, EXPEDIENTE " +
+                sql = "SELECT CAST(BITACORAID AS INTEGER) AS LOGID, CAST(0 AS INTEGER) as USERID ,T2.NOMBRE AS \"USER\", FECHAEVENTO AS DATETIMEEVENT,MODULO AS MODULE,ACCION AS \"ACTION\", CASE WHEN CAST(ESBD AS INTEGER)= 1 THEN 1 ELSE 0 END AS  ISDB, TABLA AS \"TABLE\",SENTENCIA AS SENTENCE,IP,METADATO AS METADATA,SESIONID AS SESSIONID, EXPEDIENTE AS EXPEDIENT " +
                     "FROM CGESTION.BITACORA T1 " +
                     "LEFT JOIN CGESTION.SOF_EMPLEADOS T2 ON CAST(TRUNC(T1.USUARIOID) AS INTEGER)=CAST(TRUNC(T2.ID_EMPLEADO) AS INTEGER) " +
                     "{0} ORDER BY BITACORAID DESC";
 
                 if (filter.UserId > 0) criteria.Add(string.Format(" CAST(TRUNC(T1.USUARIOID) AS INTEGER)={0} ", filter.UserId));
                 if (!string.IsNullOrEmpty(filter.Module)) criteria.Add(string.Format(" UPPER(MODULO) LIKE '%{0}%' ", filter.Module.ToUpper()));
+                if (filter.Modules != null && filter.Modules.Any()) criteria.Add(string.Format(" ({0}) ", string.Join(" OR ", filter.Modules.Select(x => string.Format(" UPPER(MODULO) LIKE '%{0}%' ", x.ToUpper())))));
                 if (!string.IsNullOrEmpty(filter.Action)) criteria.Add(string.Format(" UPPER(ACCION)='{0}' ", filter.Action.ToUpper()));
+                if (filter.Actions != null && filter.Actions.Any()) criteria.Add(string.Format(" ({0}) ", string.Join(" OR ", filter.Actions.Select(x => string.Format(" UPPER(ACCION) LIKE '%{0}%' ", x.ToUpper())))));
                 if (!string.IsNullOrEmpty(filter.Table)) criteria.Add(string.Format(" UPPER(TABLA) LIKE '%{0}%' ", filter.Table.ToUpper()));
                 if (filter.DateTimeEventFrom.HasValue || filter.DateTimeEventTo.HasValue)
                 {

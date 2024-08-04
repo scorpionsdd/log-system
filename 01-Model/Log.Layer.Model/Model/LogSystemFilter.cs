@@ -10,9 +10,11 @@ namespace Log.Layer.Model.Model
     {
         public int UserId { get; set; }        
         public string Module { get; set; }
-        public string Action { get; set; }        
+        public string Action { get; set; }
         public string Table { get; set; }
         public DateTime? DateTimeEventFrom { get; set; }
         public DateTime? DateTimeEventTo { get; set; }
+        public List<string> Modules { get; set; }
+        public List<string> Actions { get; set; }
     }
 }
