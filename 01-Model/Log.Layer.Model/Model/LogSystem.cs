@@ -56,10 +56,18 @@ namespace Log.Layer.Model.Model
         /// EXPEDIENTE
         /// </summary>
         public string Expedient { get; set; }
+        /// <summary>
+        /// CAMPO_1
+        /// </summary>
+        public string Field_1{ get; set; }
+        /// <summary>
+        /// CAMPO_2
+        /// </summary>
+        public string Field_2 { get; set; }
         public string User { get; set; }
 
         public LogSystem() { }
-        public LogSystem(int _UserId, string _Module, string _Action, string _Table, string _Sentence, string _IP, string _SessionId, string _Expedient, string _Metadata="")
+        public LogSystem(int _UserId, string _Module, string _Action, string _Table, string _Sentence, string _IP, string _SessionId, string _Expedient, string _Metadata="", string _Field_1="", string _Field_2="")
         {
             UserId = _UserId;
             Module = _Module;
@@ -71,6 +79,8 @@ namespace Log.Layer.Model.Model
             SessionId = _SessionId;
             Expedient=_Expedient;
             Metadata = _Metadata;
+            Field_1 = _Field_1;
+            Field_2= _Field_2;
         }
     }
 }

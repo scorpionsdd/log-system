@@ -61,10 +61,10 @@ namespace Log.Layer.Business
             {
                 string sql = string.Empty;
                 int count;
-                sql = "DECLARE  v_text CLOB := '{8}'; BEGIN INSERT INTO CGESTION.BITACORA\r\n(USUARIOID, FECHAEVENTO, MODULO, ACCION, ESBD, TABLA, SENTENCIA, IP, METADATO, SESIONID, EXPEDIENTE)\r\n" +
-                    "VALUES('{0}', TO_DATE('{1}', 'YYYY-MM-DD HH24:MI:SS'), '{2}', '{3}', '{4}', '{5}', '{6}','{7}',v_text,'{9}','{10}'); END;";
+                sql = "DECLARE  v_text CLOB := '{8}'; BEGIN INSERT INTO CGESTION.BITACORA\r\n(USUARIOID, FECHAEVENTO, MODULO, ACCION, ESBD, TABLA, SENTENCIA, IP, METADATO, SESIONID, EXPEDIENTE,CAMPO_1,CAMPO_2)\r\n" +
+                    "VALUES('{0}', TO_DATE('{1}', 'YYYY-MM-DD HH24:MI:SS'), '{2}', '{3}', '{4}', '{5}', '{6}','{7}',v_text,'{9}','{10}','{11}','{12}'); END;";
                 record.DateTimeEvent = DateTime.Now;
-                sql = string.Format(sql, record.UserId, record.DateTimeEvent.ToString("yyyy-MM-dd hh:mm:ss"), record.Module, record.Action, record.IsDB ? "1" : "0", record.Table, record.Sentence.Replace("'", "\""), record.IP, record.Metadata,record.SessionId,record.Expedient);
+                sql = string.Format(sql, record.UserId, record.DateTimeEvent.ToString("yyyy-MM-dd hh:mm:ss"), record.Module, record.Action, record.IsDB ? "1" : "0", record.Table, record.Sentence.Replace("'", "\""), record.IP, record.Metadata,record.SessionId,record.Expedient,record.Field_1,record.Field_2);
                 count = ExecuteNonQuery(ConfigurationManager.AppSettings["ConnectionString"], CommandType.Text, sql);
                 result.result = count > 0;
             }
@@ -100,7 +100,7 @@ namespace Log.Layer.Business
                 List<string> criteria = new List<string>();
                 List<string> criteriaDate = new List<string>();
                 OracleDataReader reader;
-                sql = "SELECT CAST(BITACORAID AS INTEGER) AS LOGID, CAST(0 AS INTEGER) as USERID ,T2.NOMBRE AS \"USER\", FECHAEVENTO AS DATETIMEEVENT,MODULO AS MODULE,ACCION AS \"ACTION\", CASE WHEN CAST(ESBD AS INTEGER)= 1 THEN 1 ELSE 0 END AS  ISDB, TABLA AS \"TABLE\",SENTENCIA AS SENTENCE,IP,METADATO AS METADATA,SESIONID AS SESSIONID, EXPEDIENTE AS EXPEDIENT " +
+                sql = "SELECT CAST(BITACORAID AS INTEGER) AS LOGID, CAST(0 AS INTEGER) as USERID ,T2.NOMBRE AS \"USER\", FECHAEVENTO AS DATETIMEEVENT,MODULO AS MODULE,ACCION AS \"ACTION\", CASE WHEN CAST(ESBD AS INTEGER)= 1 THEN 1 ELSE 0 END AS  ISDB, TABLA AS \"TABLE\",SENTENCIA AS SENTENCE,IP,METADATO AS METADATA,SESIONID AS SESSIONID, EXPEDIENTE AS EXPEDIENT,CAMPO_1 AS FIELD_1 ,CAMPO_2 AS FIELD_2 " +
                     "FROM CGESTION.BITACORA T1 " +
                     "LEFT JOIN CGESTION.SOF_EMPLEADOS T2 ON CAST(TRUNC(T1.USUARIOID) AS INTEGER)=CAST(TRUNC(T2.ID_EMPLEADO) AS INTEGER) " +
                     "{0} ORDER BY BITACORAID DESC";
@@ -167,6 +167,7 @@ namespace Log.Layer.Business
                 ItemRetrieve itemRetrieve = new ItemRetrieve();
                 ItemUpdate itemUpdate = new ItemUpdate();
                 ItemDelete itemDelete = new ItemDelete();
+                List<Item> fieldOutput = new List<Item>();
                 Func<string, string,string> fnGetText = (string sentence,string filter) => {
                     string text = string.Empty;
                     try
@@ -184,6 +185,28 @@ namespace Log.Layer.Business
                     }
                     return text;
                 };
+                Action<Item,object> fnSetValue = (Item data, object value) => {
+                    try
+                    {
+                        if (fieldOutput.Any())
+                        {
+                            var found = fieldOutput.FirstOrDefault(x => x.text == data.text);
+                            if (found != null)
+                            {
+                                found.value = value.ToString();
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                    }
+                
+                };
+                if (field.Any(x=>x.isOutput.HasValue && x.isOutput.Value))
+                {
+                    fieldOutput = field.Where(x => x.isOutput.HasValue && x.isOutput.Value).ToList();
+                    field.RemoveAll(x => x.isOutput.HasValue && x.isOutput.Value);
+                }
                 if (enuAction != enuActionTrack.Create && enuAction != enuActionTrack.Delete)
                 {
                     if (enuAction == enuActionTrack.Retrieve)
@@ -218,14 +241,15 @@ namespace Log.Layer.Business
                 {
                     case enuActionTrack.Create:
                         itemCreate.data = new List<Item>();
-                        parameter.ToList().ForEach(x => {
-                            var item = field.FirstOrDefault(p => p.value == x.ParameterName);
-                            var valueNew = x.Value;
-                            if (!string.IsNullOrEmpty(item.sentence))
+                        field.ToList().ForEach(x => {
+                            var item = parameter.FirstOrDefault(p => x.value == p.ParameterName);
+                            var valueNew = item.Value;
+                            if (!string.IsNullOrEmpty(x.sentence))
                             {                             
-                                valueNew = fnGetText(item.sentence, valueNew.ToString());
+                                valueNew = fnGetText(x.sentence, valueNew.ToString());
                             }
-                            itemCreate.data.Add(new Item { label = item.label, value = item.text, text = string.Format("{0}", valueNew) });
+                            fnSetValue(x, valueNew);
+                            itemCreate.data.Add(new Item { label = x.label, value = x.text, text = string.Format("{0}", valueNew) });
                         });
                         if (itemCreate.data.Any()) result.result = JsonConvert.SerializeObject(itemCreate);
                         break;
@@ -235,7 +259,13 @@ namespace Log.Layer.Business
                         {
                             foreach (var item in field)
                             {
-                                itemRetrieve.data.Add(new Item { value = item.text, text = string.Format("{0}", dr[item.value]) });
+                                var valueNew = dr[item.value];
+                                if (!string.IsNullOrEmpty(item.sentence))
+                                {
+                                    valueNew = fnGetText(item.sentence, valueNew.ToString());
+                                }
+                                fnSetValue(item, valueNew);
+                                itemRetrieve.data.Add(new Item { value = item.text, text = string.Format("{0}", valueNew) });
                             }
                         }
                         if (itemRetrieve.data.Any()) result.result = JsonConvert.SerializeObject(itemRetrieve);
@@ -256,6 +286,7 @@ namespace Log.Layer.Business
                                         valueOld = fnGetText(item.sentence, valueOld.ToString());
                                         valueNew = fnGetText(item.sentence, valueNew.ToString());
                                     }
+                                    fnSetValue(item, valueNew);
                                     itemUpdate.data.Add(new ItemComplex
                                     {
                                         before = new Item { label = item.label, value = item.text, text = string.Format("{0}", valueOld) },
@@ -268,12 +299,23 @@ namespace Log.Layer.Business
                         break;
                     case enuActionTrack.Delete:
                         itemDelete.data = new List<Item>();
-                        parameter.ToList().ForEach(x => {
-                            var item = field.FirstOrDefault(p => p.value == x.ParameterName);
-                            itemDelete.data.Add(new Item { value = item.text, text = string.Format("{0}", x.Value) });
+                        field.ToList().ForEach(x => {
+                            var item = parameter.FirstOrDefault(p => x.value == p.ParameterName);
+                            var valueNew = item.Value;
+                            if (!string.IsNullOrEmpty(x.sentence))
+                            {
+                                valueNew = fnGetText(x.sentence, valueNew.ToString());
+                            }
+                            fnSetValue(x, valueNew);
+                            itemDelete.data.Add(new Item { value = x.text, text = string.Format("{0}", valueNew) });
                         });
                         if (itemDelete.data.Any()) result.result = JsonConvert.SerializeObject(itemDelete);
                         break;
+                }
+
+                if (fieldOutput.Any())
+                {
+                    field.AddRange(fieldOutput);
                 }
 
             }
@@ -297,8 +339,8 @@ namespace Log.Layer.Business
                 ItemRetrieve itemRetrieve = new ItemRetrieve();
                 ItemUpdate itemUpdate = new ItemUpdate();
                 ItemDelete itemDelete = new ItemDelete();
-                string htmlRow = "<tr><td>{0}</td><td>{1}</td></tr>";
-                string htmlRowUpdate = "<tr><td>{0}</td><td>{1}</td><td>{2}</td></tr>";
+                string htmlRow = "<tr><td style='text-align:left'>{0}</td><td style='text-align:left'>{1}</td></tr>";
+                string htmlRowUpdate = "<tr><td style='text-align:left'>{0}</td><td style='text-align:left'>{1}</td><td style='text-align:left'>{2}</td></tr>";
                 string htmlBody = string.Empty;
                 string htmlTable = "<table>{0}</table>";
                 

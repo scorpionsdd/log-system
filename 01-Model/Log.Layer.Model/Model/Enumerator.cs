@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace Log.Layer.Model.Model.Enumerator
 {
+    /// <summary>
+    /// Enumerador de acciones a generar bitacora (Se modifica acorde a sistema donde se implementa)
+    /// </summary>
     public enum enuAction
     {        
         [Description("Acceso a Sistema")]Access=1,
@@ -21,6 +24,9 @@ namespace Log.Layer.Model.Model.Enumerator
         [Description("Descargar Archivo")] Download= 10,
         [Description("No Existe Usuario")] UserNotExist = 11,
     }
+    /// <summary>
+    /// Enumerador para acciones de CRUD (Es fijo)
+    /// </summary>
     public enum enuActionTrack {
         [Description("Crear Registro")] Create = 1,
         [Description("Consultar Registro")] Retrieve = 2,
