@@ -1,4 +1,5 @@
-﻿--**************************** SCRIPT BD ***************************
+﻿
+--**************************** SCRIPT BD ***************************
 /*
 PONER ATENCION EN LOS ESQUEMAS DE LOS SIGUIENTES 
 SCRIPTS Y AJUSTAR EN "Log.Layer.Business.ControlLog"
