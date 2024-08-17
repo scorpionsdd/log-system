@@ -19,9 +19,9 @@ namespace Log.Layer.Model.Model.Enumerator
         [Description("Consultar Registro")]Retrieve=5,
         [Description("Actualizar Registro")]Update=6,
         [Description("Eliminar Registro")] Delete =7,
-        [Description("Inactivar Registro")] Inactive = 8,
-        [Description("Subir Archivo")] Upload= 9,
-        [Description("Descargar Archivo")] Download= 10,
+        //[Description("Inactivar Registro")] Inactive = 8,
+        //[Description("Subir Archivo")] Upload= 9,
+        [Description("Descargar Archivo")] Download = 10,
         [Description("No Existe Usuario")] UserNotExist = 11,
     }
     /// <summary>

@@ -15,6 +15,28 @@ namespace Log.Layer.Model.Extension
 {
     public static class Extension
     {
+        public static string ToStringSplit(this string value,string label,char separator,string equal,string splitJoin="<br>") {
+            string result = string.Empty;
+            try
+            {
+                var values = value.Split(separator);
+                var labels = label.Split(',');
+                List<string> split = new List<string>();
+                if (values.Length == labels.Length)
+                {
+                    for (global::System.Int32 i = 0; i < values.Length; i++)
+                    {
+                        split.Add(string.Format("{0} {1} {2}", labels[i], equal, values[i]));
+                    }
+                    result = string.Join(splitJoin, split);
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+            return result;
+        }
         public static List<T> DataReaderMapToList<T>(this IDataReader dr)
         {
             List<T> list = new List<T>();

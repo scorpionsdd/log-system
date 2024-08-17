@@ -113,9 +113,16 @@ namespace Log.Layer.Business
                 if (!string.IsNullOrEmpty(filter.Table)) criteria.Add(string.Format(" UPPER(TABLA) LIKE '%{0}%' ", filter.Table.ToUpper()));
                 if (filter.DateTimeEventFrom.HasValue || filter.DateTimeEventTo.HasValue)
                 {
-                    if (filter.DateTimeEventFrom.HasValue) criteriaDate.Add(string.Format(" FECHAEVENTO >=TO_DATE('{0}', 'YYYY-MM-DD HH24:MI:SS') ", filter.DateTimeEventFrom.Value.ToString("yyyy-MM-dd hh:mm:ss")));
-                    if (filter.DateTimeEventTo.HasValue) criteriaDate.Add(string.Format(" FECHAEVENTO <=TO_DATE('{0}', 'YYYY-MM-DD HH24:MI:SS') ", filter.DateTimeEventTo.Value.ToString("yyyy-MM-dd hh:mm:ss")));
-                    criteria.Add(string.Format(" ({0}) ", string.Join("OR", criteriaDate)));
+                    if (filter.DateTimeEventFrom.HasValue) criteriaDate.Add(string.Format(" FECHAEVENTO >=TO_DATE('{0}', 'YYYY-MM-DD') ", filter.DateTimeEventFrom.Value.ToString("yyyy-MM-dd")));
+                    if (filter.DateTimeEventTo.HasValue) criteriaDate.Add(string.Format(" FECHAEVENTO <=TO_DATE('{0}', 'YYYY-MM-DD') ", filter.DateTimeEventTo.Value.ToString("yyyy-MM-dd")));
+                    if (criteriaDate.Count == 2 && (filter.DateTimeEventFrom.Value.ToString("yyyy-MM-dd") == filter.DateTimeEventTo.Value.ToString("yyyy-MM-dd"))) {
+                        criteria.Add(string.Format(" ({0}) ", string.Format(" TO_CHAR(FECHAEVENTO, 'YYYY-MM-DD') = TO_CHAR(TO_DATE('{0}', 'YYYY-MM-DD'), 'YYYY-MM-DD') ", filter.DateTimeEventFrom.Value.ToString("yyyy-MM-dd"))));
+                    }
+                    else
+                    {
+                        criteria.Add(string.Format(" ({0}) ", string.Join("AND", criteriaDate)));
+                    }
+                    
                 }
 
                 if (criteria.Any()) where = string.Format(" WHERE {0} ", string.Join("AND", criteria));
@@ -276,22 +283,32 @@ namespace Log.Layer.Business
                         {
                             foreach (var item in field)
                             {
-                                var x = parameter.FirstOrDefault(y => y.ParameterName == item.value);
-                                var valueOld = dr[item.text];
-                                var valueNew = x.Value;
-                                if (valueOld!= valueNew)
+                                try
                                 {
+                                    var x = parameter.FirstOrDefault(y => y.ParameterName == item.value);
+                                    var valueOld = dr[item.text];
+                                    var valueNew = x.Value;
                                     if (!string.IsNullOrEmpty(item.sentence))
                                     {
                                         valueOld = fnGetText(item.sentence, valueOld.ToString());
                                         valueNew = fnGetText(item.sentence, valueNew.ToString());
+                                        if (valueOld == valueNew)
+                                        {
+                                            throw new Exception("Se ignora por que no cambio");
+                                        }
                                     }
                                     fnSetValue(item, valueNew);
-                                    itemUpdate.data.Add(new ItemComplex
+                                    if (valueOld.ToString() != valueNew.ToString())
                                     {
-                                        before = new Item { label = item.label, value = item.text, text = string.Format("{0}", valueOld) },
-                                        after = new Item { value = x.ParameterName, text = string.Format("{0}", valueNew) }
-                                    }); 
+                                        itemUpdate.data.Add(new ItemComplex
+                                        {
+                                            before = new Item { label = item.label, value = item.text, text = string.Format("{0}", valueOld) },
+                                            after = new Item { value = x.ParameterName, text = string.Format("{0}", valueNew) }
+                                        });
+                                    }
+                                }
+                                catch (Exception)
+                                {
                                 }
                             }
                         }
@@ -339,8 +356,8 @@ namespace Log.Layer.Business
                 ItemRetrieve itemRetrieve = new ItemRetrieve();
                 ItemUpdate itemUpdate = new ItemUpdate();
                 ItemDelete itemDelete = new ItemDelete();
-                string htmlRow = "<tr><td style='text-align:left'>{0}</td><td style='text-align:left'>{1}</td></tr>";
-                string htmlRowUpdate = "<tr><td style='text-align:left'>{0}</td><td style='text-align:left'>{1}</td><td style='text-align:left'>{2}</td></tr>";
+                string htmlRow = "<tr><td style='text-align:left' class='item-record-detail-1'>{0}</td><td style='text-align:left' class='item-record-detail-2'>{1}</td></tr>";
+                string htmlRowUpdate = "<tr><td style='text-align:left' class='item-record-detail-update-1'>{0}</td><td style='text-align:left' class='item-record-detail-update-2'>{1}</td><td style='text-align:left' class='item-record-detail-update-3'>{2}</td></tr>";
                 string htmlBody = string.Empty;
                 string htmlTable = "<table>{0}</table>";
                 
